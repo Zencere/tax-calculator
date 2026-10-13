@@ -15,7 +15,7 @@
     siMode: 'ratio',                         // 'ratio' 按比例 | 'fixed' 按固定金额
     siBase: 'basic',                         // 缴费基数：'basic' 基本工资（默认）| 'full' 基本工资+月度奖金
     city: '',                                // 参保城市：'' 自定义（手动填写）| 城市名（见 T.CITY_PRESETS）
-    ratios: { pension: 8, medical: 2, unemployment: 0.5, housing: 7 }, // 百分数
+    ratios: { pension: 8, medical: 2, unemployment: 0.5, housing: 12 }, // 百分数
     fixedSi: 3500,                           // 固定金额模式下每月五险一金合计（元）
     capEnabled: true,                        // 是否启用缴费基数上下限封顶（默认开启）
     siCap: '',                               // 缴费基数月上限（元，留空 = 不限）
@@ -35,6 +35,12 @@
   };
 
   var config = deepClone(DEFAULT_CONFIG);
+
+  // 最近一次 render 的「当前方式应纳税所得额」（随 method / 输入变化更新），供加班优化器使用
+  var currentTaxable = 0;
+  // 档位刻度尺：7 档年度应纳税所得额边界（元）与刻度最大值（超 96 万贴最右）
+  var SCALE_BOUNDS = [0, 36000, 144000, 300000, 420000, 660000, 960000];
+  var SCALE_MAX = 960000;
 
   /* ===================== 基础工具 ===================== */
   function $(id) { return document.getElementById(id); }
@@ -181,17 +187,21 @@
     config.capEnabled = $('capEnabled').checked;
     config.siCap = $('siCapInput').value.trim();
     config.siFloor = $('siFloorInput').value.trim();
-    // 参保城市：与四比例及上下限联动。比例 / 上下限与所选城市预置不一致 → 自动切回「自定义」
+    // 参保城市：只负责读取，最终归属交给 onCityChange 与 detectCityMismatch 管理
     var citySel = $('citySelect');
     config.city = citySel ? citySel.value : '';
-    if (config.city) {
-      var pc = CITY_MAP[config.city];
-      if (!pc || config.ratios.pension !== pc.pension || config.ratios.medical !== pc.medical ||
-          config.ratios.unemployment !== pc.unemployment || config.ratios.housing !== pc.housing ||
-          config.siCap !== String(pc.siCap) || config.siFloor !== String(pc.siFloor)) {
-        config.city = '';
-        citySel.value = '';
-      }
+  }
+
+  // 手改比例 / 缴费基数上下限后，若与所选城市预置不一致 → 自动切回「自定义」
+  // 注意：只在 onAnyInput 中由比例/封顶输入框的 input/change 触发，select 的 input/change 不进入此路径
+  function detectCityMismatch() {
+    if (!config.city) return;
+    var pc = CITY_MAP[config.city];
+    if (!pc || config.ratios.pension !== pc.pension || config.ratios.medical !== pc.medical ||
+        config.ratios.unemployment !== pc.unemployment || config.ratios.housing !== pc.housing ||
+        config.siCap !== String(pc.siCap) || config.siFloor !== String(pc.siFloor)) {
+      config.city = '';
+      $('citySelect').value = '';
     }
   }
 
@@ -347,11 +357,61 @@
       bonusMonth: bonusMonth,
       mode: config.method
     });
+    // 「当前方式综合所得应纳税所得额」：单独 = 年薪 − 60000 − 五险一金×12 − 专项×12（不含年终奖）；
+    // 合并 = 年薪 + 年终奖 − 60000 − 五险一金×12 − 专项×12（含年终奖）。可为负，由 annualBracket 归第 1 档。
+    var selectedTotal = config.method === 'separate' ? annual.separate.total : annual.combined.total;
+    var curTaxable = config.method === 'separate'
+      ? annualSalaryIncome - T.BASIC_DEDUCTION_YEAR - si * 12 - sp * 12
+      : annualSalaryIncome + bonus - T.BASIC_DEDUCTION_YEAR - si * 12 - sp * 12;
     return {
       base: base, mb: mb, monthlySalary: monthlySalary, si: si, sp: sp,
       siBase: siBaseAmount(), siBaseClamped: siBaseClampedAmount(), bonus: bonus, bonusMonth: bonusMonth,
-      annualSalaryIncome: annualSalaryIncome, annual: annual, table: table
+      annualSalaryIncome: annualSalaryIncome, annual: annual, table: table,
+      curTaxable: curTaxable, selectedTotal: selectedTotal
     };
+  }
+
+  /* ===================== 结论前置：Hero / 档位尺 / 加班优化器 ===================== */
+
+  // Hero：月均到手 ≈ X 元/月 + 三个年度指标 + 档位徽章
+  function renderHero(c) {
+    var siYear = c.si * 12;
+    var netYear = round2(c.annualSalaryIncome + c.bonus - siYear - c.selectedTotal);
+    var monthAvg = round2(netYear / 12);
+    $('heroMethodLabel').textContent = methodName();
+    $('heroNetMonth').textContent = fmt(monthAvg);
+    $('heroNetYear').textContent = fmt(netYear);
+    $('heroTax').textContent = fmt(c.selectedTotal);
+    $('heroSi').textContent = fmt(siYear);
+    var b = T.annualBracket(c.curTaxable);
+    $('heroBadge').textContent = '第 ' + b.level + ' 档 · 税率 ' + compactRate(b.rate * 100) + '%';
+  }
+
+  // 档位刻度尺：游标按比例定位（超 96 万贴最右）+ 距下一档文案
+  function renderScale(c) {
+    var t = c.curTaxable;
+    var pos = Math.max(0, Math.min(1, t / SCALE_MAX)) * 100;
+    $('scaleDot').style.left = pos + '%';
+    $('scaleTaxable').textContent = fmt(t);
+    var b = T.annualBracket(t);
+    $('scaleLevel').textContent = '第 ' + b.level + ' 档 · 税率 ' + compactRate(b.rate * 100) + '%';
+    if (b.level >= 7) {
+      $('scaleGap').textContent = '已在最高档位（第 7 档 · 45%）';
+    } else {
+      $('scaleGap').textContent = '距下一档（第 ' + (b.level + 1) + ' 档）还有 ' + fmt(round2(b.upper - t)) + ' 元';
+    }
+  }
+
+  // 加班优化器：按当前方式应纳税所得额 + 加班费实时算边际个税（不动年度计算主流程）
+  function renderOvertime() {
+    var v = parseFloat($('overtimeAmount').value);
+    if (!isFinite(v) || v < 0) v = 0;
+    var r = T.marginalTax(currentTaxable, v);
+    $('otNet').textContent = fmt(r.netOfAdded);
+    $('otRate').textContent = compactRate(r.actualRate * 100) + '%';
+    $('otLevel').textContent = r.crossed ? ('第 ' + r.fromLevel + ' 档 → 第 ' + r.toLevel + ' 档') : '不升档';
+    $('otAddedTax').textContent = fmt(r.addedTax);
+    $('otNote').style.display = (r.addedTax > 0 || r.crossed) ? '' : 'none';
   }
 
   /* ===================== 渲染 ===================== */
@@ -360,6 +420,10 @@
   function render(c) {
     var sep = c.annual.separate;
     var comb = c.annual.combined;
+    currentTaxable = c.curTaxable;
+    renderHero(c);
+    renderScale(c);
+    $('paramPreview').textContent = '月薪 ' + fmt(c.monthlySalary) + ' · 五险一金 ' + fmt(c.si) + '/月 · 专项 ' + fmt(c.sp) + '/月 · 年终奖 ' + fmt(c.bonus) + ' · ' + methodName();
 
     /* --- 输入摘要 --- */
     $('monthlySalarySummary').innerHTML = '月工资合计 = 基本工资 <b>' + fmt(c.base) + '</b> + 月度奖金 <b>' + fmt(c.mb) + '</b> = <b>' + fmt(c.monthlySalary) + '</b> 元';
@@ -484,6 +548,9 @@
       tn += '全年口径税额与次年 5 月发放完全相同，仅到账时间更早（12 月）。';
     }
     $('timeNote').textContent = tn;
+
+    /* 加班优化器（随本次 recalc 同步刷新；其输入变化时另有独立监听） */
+    renderOvertime();
   }
 
   /* ===================== 按钮动作 ===================== */
@@ -579,6 +646,7 @@
     recalc();
     $('inputsWrap').addEventListener('input', onAnyInput);
     $('inputsWrap').addEventListener('change', onAnyInput);
+    $('overtimeAmount').addEventListener('input', renderOvertime); // 加班优化器：独立于年度计算主流程
     $('citySelect').addEventListener('change', onCityChange);
     $('btnExport').addEventListener('click', exportConfig);
     $('btnImport').addEventListener('click', function () { $('importFile').click(); });
@@ -589,11 +657,18 @@
     $('btnReset').addEventListener('click', resetConfig);
   }
 
-  function onAnyInput() {
+  function onAnyInput(ev) {
     readInputs();
     enforceExclusive();
     syncModeVisibility();
     syncSpecialVisibility();
+    // 仅当触发源是比例/缴费上下限输入框时，检测与所选城市预置是否不一致 → 不一致则切回「自定义」
+    // （select 的 input/change 事件也会进入这里，但其 target.id 不在此列，不会误触发）
+    var sid = ev && ev.target && ev.target.id;
+    if (sid === 'ratioPension' || sid === 'ratioMedical' || sid === 'ratioUnemployment' ||
+        sid === 'ratioHousing' || sid === 'siCapInput' || sid === 'siFloorInput') {
+      detectCityMismatch();
+    }
     saveConfig();
     recalc();
   }

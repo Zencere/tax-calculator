@@ -66,6 +66,30 @@
     return brackets[brackets.length - 1];
   }
 
+  /**
+   * 年度综合所得档位定位（第 1–7 档）。
+   * @param {number} taxable 全年应纳税所得额（可负 / 0；负数按第 1 档下边界处理）
+   * @returns {{level:number, rate:number, quick:number, lower:number, upper:number}}
+   *   level 1-7 档序号；rate / quick 为该档税率 / 速算扣除数；
+   *   lower / upper 为该档区间边界（第 1 档 lower = 0；第 7 档 upper = Infinity；
+   *   边界值 36000 / 144000 / … 归入较低一档，与 bracketLookup 的 ≤ 语义一致）。
+   */
+  function annualBracket(taxable) {
+    var t = Number(taxable);
+    if (!isFinite(t)) t = 0;
+    if (t < 0) t = 0;
+    var idx = 0;
+    while (idx < ANNUAL_BRACKETS.length - 1 && t > ANNUAL_BRACKETS[idx].upTo) idx++;
+    var b = ANNUAL_BRACKETS[idx];
+    return {
+      level: idx + 1,
+      rate: b.rate,
+      quick: b.quick,
+      lower: idx === 0 ? 0 : ANNUAL_BRACKETS[idx - 1].upTo,
+      upper: b.upTo
+    };
+  }
+
   /* ===================== 核心年口径函数 ===================== */
 
   /**
@@ -78,6 +102,39 @@
     if (taxable <= 0) return 0;
     var b = bracketLookup(ANNUAL_BRACKETS, taxable);
     return round2(Math.max(0, taxable * b.rate - b.quick));
+  }
+
+  /**
+   * 加班 / 额外收入边际个税（在当前应纳税所得额基础上追加 added 元）。
+   * 口径：新增税额 = 综合年度税额(cur + added) − 综合年度税额(cur)（超额累进差量）。
+   * @param {number} curTaxable 当前全年应纳税所得额（可负 / 0）
+   * @param {number} added      新增金额（加班费，元；可为 0）
+   * @returns {{addedTax:number, netOfAdded:number, actualRate:number,
+   *            fromLevel:number, toLevel:number, crossed:boolean}}
+   *   addedTax    全年多缴个税（round2，≥0）
+   *   netOfAdded  到手净增 = added − addedTax（round2）
+   *   actualRate  added > 0 时 = addedTax / added（保留原始精度，展示时再格式化），否则 0
+   *   fromLevel / toLevel  追加前后的档位（annualBracket().level）
+   *   crossed     fromLevel !== toLevel
+   */
+  function marginalTax(curTaxable, added) {
+    var cur = Number(curTaxable);
+    if (!isFinite(cur)) cur = 0;
+    var add = Number(added);
+    if (!isFinite(add)) add = 0;
+    var addedTax = round2(Math.max(0, comprehensiveAnnualTax(cur + add) - comprehensiveAnnualTax(cur)));
+    var netOfAdded = round2(add - addedTax);
+    var actualRate = add > 0 ? addedTax / add : 0;
+    var fromLevel = annualBracket(cur).level;
+    var toLevel = annualBracket(cur + add).level;
+    return {
+      addedTax: addedTax,
+      netOfAdded: netOfAdded,
+      actualRate: actualRate,
+      fromLevel: fromLevel,
+      toLevel: toLevel,
+      crossed: fromLevel !== toLevel
+    };
   }
 
   /**
@@ -359,7 +416,9 @@
     BASIC_DEDUCTION_YEAR: BASIC_DEDUCTION_YEAR,
     round2: round2,
     clampBase: clampBase,
+    annualBracket: annualBracket,
     comprehensiveAnnualTax: comprehensiveAnnualTax,
+    marginalTax: marginalTax,
     annualBonusTax: annualBonusTax,
     monthlySocialInsurance: monthlySocialInsurance,
     annualBonusAmount: annualBonusAmount,

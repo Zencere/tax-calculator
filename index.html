@@ -17,13 +17,12 @@
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei","PingFang SC","Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.65}
-  .container{max-width:1300px;margin:0 auto;padding:28px 16px 60px}
+  .container{max-width:1100px;margin:0 auto;padding:28px 16px 60px}
   header{text-align:center;margin-bottom:26px}
   header h1{font-size:26px;font-weight:700;letter-spacing:.5px}
   header h1 .emoji{margin-right:6px}
   header p{color:var(--muted);margin-top:6px;font-size:13px}
-  .layout{display:grid;grid-template-columns:400px 1fr;gap:20px;align-items:start}
-  @media(max-width:980px){.layout{grid-template-columns:1fr}}
+  .layout{display:grid;grid-template-columns:1fr;gap:0;align-items:start}
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 18px 16px;margin-bottom:16px}
   .card>h2{font-size:15px;font-weight:600;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .card>h2 .step{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;font-weight:600;flex:none}
@@ -89,6 +88,38 @@
   /* 数据年度警示提示条 */
   .data-year-note{display:flex;align-items:flex-start;gap:6px;background:var(--warn-soft);border:1px solid var(--warn-border);color:var(--warn);border-radius:8px;padding:7px 10px;font-size:12.5px;line-height:1.55;margin-bottom:13px;overflow-wrap:break-word}
   .data-year-note .warn-ico{flex:none;font-size:13px;line-height:1.4}
+  /* ===== 结论前置：Hero / 档位刻度尺 / 加班优化器 ===== */
+  .hero-card{background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 55%,#3b82f6 100%);color:#fff;border:none;box-shadow:0 10px 28px rgba(37,99,235,.28)}
+  .hero-title{font-size:13px;font-weight:600;letter-spacing:1.5px;opacity:.92;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .hero-main{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:12px}
+  .hero-big{font-size:38px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.15}
+  .hero-big small{font-size:15px;font-weight:500;opacity:.9}
+  .hero-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.38);border-radius:999px;padding:4px 14px;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+  .hero-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.22)}
+  @media(max-width:560px){.hero-metrics{grid-template-columns:1fr 1fr}.hero-big{font-size:30px}}
+  .hero-metric .k{font-size:12px;opacity:.85}
+  .hero-metric .v{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px}
+  /* 档位刻度尺 */
+  .scale{position:relative;height:8px;background:linear-gradient(90deg,#93c5fd,#60a5fa,#3b82f6,#2563eb,#1d4ed8,#1e40af,#172554);border-radius:999px;margin:42px 24px 0}
+  .scale-dot{position:absolute;top:-4px;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;background:#fff;border:4px solid var(--accent);box-shadow:0 1px 5px rgba(0,0,0,.3);z-index:3;transition:left .2s}
+  .scale-tick{position:absolute;top:-35px;transform:translateX(-50%);text-align:center;color:#4b5563;font-size:13px;font-weight:500;line-height:1.2;white-space:nowrap;z-index:1}
+  .scale-tick i{display:block;width:2px;height:16px;background:rgba(107,114,128,.55);margin:3px auto 0}
+  .scale-gap{margin-top:16px;font-size:13.5px;font-weight:600;color:var(--warn);display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .scale-gap .lvl{color:var(--accent)}
+  /* 加班优化器 */
+  .ot-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+  @media(max-width:700px){.ot-grid{grid-template-columns:1fr 1fr}}
+  .ot-box{border:1px solid var(--line);border-radius:10px;padding:12px 8px;text-align:center;background:#fafbfc}
+  .ot-box .k{font-size:12px;color:var(--muted)}
+  .ot-box .v{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:4px;color:#1e40af}
+  .ot-note{background:var(--warn-soft);border:1px solid var(--warn-border);color:var(--warn);border-radius:10px;padding:9px 12px;font-size:12.5px;margin-top:12px;line-height:1.6}
+  /* 折叠区（原生 details） */
+  details.card>summary{list-style:none;cursor:pointer;user-select:none;font-size:15px;font-weight:600;margin-bottom:0;padding:0 0 10px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  details.card>summary::-webkit-details-marker{display:none}
+  details.card[open]>summary{border-bottom:1px solid var(--line);margin-bottom:14px}
+  details.card>summary .chev{display:inline-block;transition:transform .15s;color:var(--muted);font-size:11px;transform:rotate(90deg)}
+  details.card[open]>summary .chev{transform:rotate(0deg)}
+  details.card>summary .preview{font-size:12px;font-weight:500;color:var(--muted)}
   /* ===== 移动端适配加固（≤600px / ≤480px，不影响桌面端） ===== */
   @media(max-width:600px){
     .container{padding:16px 12px 44px}
@@ -118,196 +149,247 @@
   </header>
 
   <div class="layout">
-    <!-- ===================== 左侧：输入 ===================== -->
-    <div class="left" id="inputsWrap">
-      <div class="card">
-        <h2><span class="step">1</span>工资收入（元 / 月）</h2>
-        <div class="grid2">
-          <div class="field"><label for="baseSalary">基本工资</label><input type="number" id="baseSalary" inputmode="decimal" min="0" step="100" value="20000"></div>
-          <div class="field"><label for="monthlyBonus">月度奖金</label><input type="number" id="monthlyBonus" inputmode="decimal" min="0" step="100" value="5000" placeholder="可为 0"></div>
-        </div>
-        <div class="summary-chip" id="monthlySalarySummary"></div>
+    <!-- ===================== 核心结论 Hero ===================== -->
+    <div class="card hero-card">
+      <div class="hero-title">🏆 核心结论 · 当前方式：<span id="heroMethodLabel">单独计税</span></div>
+      <div class="hero-main">
+        <div class="hero-big">月均到手 ≈ <span id="heroNetMonth">—</span> <small>元/月</small></div>
+        <span class="hero-badge" id="heroBadge">第 1 档 · 税率 3%</span>
       </div>
-
-      <div class="card">
-        <h2><span class="step">2</span>五险一金（专项扣除）</h2>
-        <div class="data-year-note"><span class="warn-ico">⚠</span><span>社保缴费基数数据为 <strong>2025 年度</strong>（对应 2024 年全口径社平工资）；各地通常每年 7 月发布新基数，逾期请提醒更新数据。</span></div>
-        <div class="field">
-          <label for="citySelect">参保城市</label>
-          <select id="citySelect"><option value="" selected>自定义（手动填写）</option></select>
-          <div class="hint">选择城市后自动填入该市常见个人比例，并联动住房租金档位建议；仍可手动修改任意比例，修改后下拉自动切回「自定义」。公积金比例 5%–12% 由单位自选，本默认值为该市常见比例，仅供参考。</div>
-        </div>
-        <div class="field">
-          <label>缴费基数</label>
-          <div class="radio-row">
-            <label><input type="radio" name="siBase" value="basic" checked>基本工资（默认）</label>
-            <label><input type="radio" name="siBase" value="full">全额工资（基本工资+月度奖金）</label>
-          </div>
-        </div>
-        <div class="field">
-          <label class="cap-toggle"><input type="checkbox" id="capEnabled" checked>启用缴费基数上下限封顶（工资超当地上限时五险一金不再随工资上涨）</label>
-          <div class="grid2">
-            <div class="field"><label for="siCapInput">缴费基数上限（元/月，留空=不限）</label><input type="number" id="siCapInput" inputmode="decimal" min="0" step="100" placeholder="留空不限"></div>
-            <div class="field"><label for="siFloorInput">缴费基数下限（元/月，留空=不限）</label><input type="number" id="siFloorInput" inputmode="decimal" min="0" step="100" placeholder="留空不限"></div>
-          </div>
-          <div class="hint">选择城市后自动带出该市缴费基数上下限（2025 年度公布值），可手动修改；留空则该方向不封顶；公积金上下限与社保略有差异，此处按社保口径近似。</div>
-        </div>
-        <div class="radio-row">
-          <label><input type="radio" name="siMode" value="ratio" checked>按比例缴纳</label>
-          <label><input type="radio" name="siMode" value="fixed">按固定金额</label>
-        </div>
-        <div id="ratioFields" class="grid4">
-          <div class="field"><label for="ratioPension">养老 %</label><input type="number" id="ratioPension" inputmode="decimal" min="0" max="100" step="0.1" value="8"></div>
-          <div class="field"><label for="ratioMedical">医疗 %</label><input type="number" id="ratioMedical" inputmode="decimal" min="0" max="100" step="0.1" value="2"></div>
-          <div class="field"><label for="ratioUnemployment">失业 %</label><input type="number" id="ratioUnemployment" inputmode="decimal" min="0" max="100" step="0.1" value="0.5"></div>
-          <div class="field"><label for="ratioHousing">公积金 %</label><input type="number" id="ratioHousing" inputmode="decimal" min="0" max="100" step="0.1" value="7"></div>
-        </div>
-        <div id="fixedFields" class="field" style="display:none">
-          <label for="fixedSiAmount">每月五险一金合计（元）</label>
-          <input type="number" id="fixedSiAmount" inputmode="decimal" min="0" step="10" value="3500">
-        </div>
-        <div class="summary-chip" id="siSummary"></div>
-        <div class="note">缴费基数默认「基本工资」，可选「全额工资（基本工资+月度奖金）」；比例模式 = 缴费基数 × 个人比例合计；固定金额模式不受缴费基数影响。启用封顶后：基数高于当地上限按上限计、低于下限按下限计（按社保口径近似，公积金上下限略有差异）。</div>
-      </div>
-
-      <div class="card">
-        <h2><span class="step">3</span>专项附加扣除（选择 → 自动填标准金额）</h2>
-        <div class="field">
-          <label for="specialChildrenCount">子女教育 <span class="hint">2000 元/月·子女（国发〔2023〕13 号）</span></label>
-          <div class="grid2">
-            <select id="specialChildrenCount">
-              <option value="0" selected>0 个</option>
-              <option value="1">1 个</option>
-              <option value="2">2 个</option>
-              <option value="3">3 个</option>
-            </select>
-            <div class="sel-amt" id="specialChildrenAmt">0.00 元/月</div>
-          </div>
-        </div>
-        <div class="field">
-          <label for="specialInfantsCount">3岁以下婴幼儿照护 <span class="hint">2000 元/月·孩</span></label>
-          <div class="grid2">
-            <select id="specialInfantsCount">
-              <option value="0" selected>0 个</option>
-              <option value="1">1 个</option>
-              <option value="2">2 个</option>
-              <option value="3">3 个</option>
-            </select>
-            <div class="sel-amt" id="specialInfantsAmt">0.00 元/月</div>
-          </div>
-        </div>
-        <div class="field">
-          <label>继续教育 <span class="hint">学历学位教育 400 元/月</span></label>
-          <div class="radio-row">
-            <label><input type="radio" name="specialEducation" value="no" checked>无</label>
-            <label><input type="radio" name="specialEducation" value="yes">有（学历学位教育，400/月）</label>
-          </div>
-          <div class="sel-amt" id="specialEducationAmt">0.00 元/月</div>
-        </div>
-        <div class="field">
-          <label>住房贷款利息 <span class="hint">首套房贷 1000 元/月</span></label>
-          <div class="radio-row">
-            <label><input type="radio" name="specialLoan" value="no" checked>无</label>
-            <label><input type="radio" name="specialLoan" value="yes">首套房贷，1000/月</label>
-          </div>
-          <div class="sel-amt" id="specialLoanAmt">0.00 元/月</div>
-        </div>
-        <div class="field">
-          <label for="specialRent">住房租金 <span class="hint">与住房贷款利息互斥（二选一）；选择城市时自动建议档位，可手动改</span></label>
-          <div class="grid2">
-            <select id="specialRent">
-              <option value="" selected>无</option>
-              <option value="1500">1500（直辖市·省会·计划单列市）</option>
-              <option value="1100">1100（市区人口&gt;100万）</option>
-              <option value="800">800（其他）</option>
-            </select>
-            <div class="sel-amt" id="specialRentAmt">0.00 元/月</div>
-          </div>
-        </div>
-        <div class="field">
-          <label>赡养老人 <span class="hint">独生子女 3000 元/月；非独生子女与兄弟姐妹分摊，每人≤1500</span></label>
-          <div class="radio-row">
-            <label><input type="radio" name="specialElderly" value="none" checked>无</label>
-            <label><input type="radio" name="specialElderly" value="sole">独生子女 3000/月</label>
-            <label><input type="radio" name="specialElderly" value="share">非独生子女</label>
-          </div>
-          <div id="elderlyShareField" class="field" style="display:none">
-            <label for="specialElderlyShare">自己分摊额（元/月，上限 1500，超出按 1500）</label>
-            <input type="number" id="specialElderlyShare" inputmode="decimal" min="0" max="1500" step="100" value="1500">
-          </div>
-          <div class="sel-amt" id="specialElderlyAmt">0.00 元/月</div>
-        </div>
-        <div class="summary-chip" id="specialSummary"></div>
-        <div class="note">大病医疗不在此处：年度据实扣除、汇算清缴时填报。</div>
-      </div>
-
-      <div class="card">
-        <h2><span class="step">4</span>年终奖</h2>
-        <div class="grid2">
-          <div class="field"><label for="bonusMonths">N 个月（可填小数）</label><input type="number" id="bonusMonths" inputmode="decimal" min="0" step="0.1" value="2"></div>
-          <div class="field"><label for="bonusTiming">发放时间</label>
-            <select id="bonusTiming">
-              <option value="may" selected>次年5月发（默认）</option>
-              <option value="dec">当年12月发</option>
-            </select>
-          </div>
-        </div>
-        <div class="summary-chip" id="bonusAmountSummary"></div>
-        <div class="note" id="bonusTimingNote"></div>
-      </div>
-
-      <div class="card">
-        <h2><span class="step">5</span>计税方式</h2>
-        <div class="radio-row">
-          <label><input type="radio" name="method" value="separate" checked>单独计税</label>
-          <label><input type="radio" name="method" value="combined">合并计税</label>
-        </div>
-        <div class="note">无论选择哪种，右侧始终同时展示两种方式的税额对比与差额。全年一次性奖金单独计税政策延续至 2027 年 12 月 31 日。</div>
+      <div class="hero-metrics">
+        <div class="hero-metric"><div class="k">全年到手（净收入）</div><div class="v" id="heroNetYear">—</div></div>
+        <div class="hero-metric"><div class="k">全年个税（当前方式）</div><div class="v" id="heroTax">—</div></div>
+        <div class="hero-metric"><div class="k">全年五险一金</div><div class="v" id="heroSi">—</div></div>
       </div>
     </div>
 
-    <!-- ===================== 右侧：输出 ===================== -->
-    <div class="right">
-      <div class="card">
-        <h2>⚖️ 单独计税 vs 合并计税</h2>
-        <div class="cmp-grid">
-          <div class="cmp-box" id="cmpSep">
-            <div class="tag">单独计税</div>
-            <div class="num" id="cmpSepTotal">—</div>
-            <div class="sub" id="cmpSepDetail"></div>
-            <div class="flag">✓ 更划算</div>
-          </div>
-          <div class="cmp-box" id="cmpComb">
-            <div class="tag">合并计税</div>
-            <div class="num" id="cmpCombTotal">—</div>
-            <div class="sub" id="cmpCombDetail"></div>
-            <div class="flag">✓ 更划算</div>
-          </div>
-        </div>
-        <div class="cmp-result" id="cmpBetter"></div>
-        <div class="cmp-diff" id="cmpDiff"></div>
+    <!-- ===================== 档位刻度尺 ===================== -->
+    <div class="card">
+      <h2>📏 档位刻度尺 · 当前方式应纳税所得额 <b id="scaleTaxable">—</b> 元 · <span class="lvl" id="scaleLevel">第 1 档 · 税率 3%</span></h2>
+      <div class="scale">
+        <div class="scale-dot" id="scaleDot"></div>
+        <div class="scale-tick" style="left:0%;transform:translateX(0)"><span>0</span><i></i></div>
+        <div class="scale-tick" style="left:3.75%"><span>3.6万</span><i></i></div>
+        <div class="scale-tick" style="left:15%"><span>14.4万</span><i></i></div>
+        <div class="scale-tick" style="left:31.25%"><span>30万</span><i></i></div>
+        <div class="scale-tick" style="left:43.75%"><span>42万</span><i></i></div>
+        <div class="scale-tick" style="left:68.75%"><span>66万</span><i></i></div>
+        <div class="scale-tick" style="left:100%;transform:translateX(-100%)"><span>96万</span><i></i></div>
       </div>
-
-      <div class="card">
-        <h2>📅 月度预扣明细（累计预扣预缴，12 个月）</h2>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>月份</th><th>当月收入</th><th>累计应纳税所得额</th><th>当月预扣个税</th><th>其中：年终奖税</th><th>备注</th></tr></thead>
-            <tbody id="tblBody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>📊 年度汇总（当前方式：<span id="methodLabel">单独计税</span>）</h2>
-        <div class="sum-list" id="sumList"></div>
-      </div>
-
-      <div class="card">
-        <h2>⏱ 发放时间影响说明</h2>
-        <div id="timeNote" class="note" style="color:#374151;font-size:13px"></div>
-      </div>
+      <div class="scale-gap"><span id="scaleGap">—</span></div>
     </div>
+
+    <!-- ===================== 加班优化器 ===================== -->
+    <div class="card">
+      <h2>⏰ 加班优化器 <span class="note">额外加班费对个税的实际影响（边际口径）</span></h2>
+      <div class="field" style="max-width:280px">
+        <label for="overtimeAmount">额外加班费（元，全年合计）</label>
+        <input type="number" id="overtimeAmount" inputmode="decimal" min="0" step="100" value="0" placeholder="输入加班费金额">
+        <div class="hint">按当前方式应纳税所得额实时计算：这笔加班费到手多少、实际税负多高、是否升档。</div>
+      </div>
+      <div class="ot-grid">
+        <div class="ot-box"><div class="k">到手增加（净额）</div><div class="v" id="otNet">—</div></div>
+        <div class="ot-box"><div class="k">实际税负率</div><div class="v" id="otRate">—</div></div>
+        <div class="ot-box"><div class="k">档位变化</div><div class="v" id="otLevel">—</div></div>
+        <div class="ot-box"><div class="k">全年多缴个税</div><div class="v" id="otAddedTax">—</div></div>
+      </div>
+      <div class="ot-note" id="otNote" style="display:none">个税为超额累进：即使升档，仅「超出档位边界的部分」按更高税率，原有收入不会重算，故跳档多缴通常有限。</div>
+    </div>
+
+    <!-- ===================== 单独 vs 合并计税 对比 ===================== -->
+    <details class="card" open>
+      <summary>⚖️ 单独 vs 合并计税<span class="chev">▶</span></summary>
+      <div class="cmp-grid">
+        <div class="cmp-box" id="cmpSep">
+          <div class="tag">单独计税</div>
+          <div class="num" id="cmpSepTotal">—</div>
+          <div class="sub" id="cmpSepDetail"></div>
+          <div class="flag">✓ 更划算</div>
+        </div>
+        <div class="cmp-box" id="cmpComb">
+          <div class="tag">合并计税</div>
+          <div class="num" id="cmpCombTotal">—</div>
+          <div class="sub" id="cmpCombDetail"></div>
+          <div class="flag">✓ 更划算</div>
+        </div>
+      </div>
+      <div class="cmp-result" id="cmpBetter"></div>
+      <div class="cmp-diff" id="cmpDiff"></div>
+    </details>
+
+    <!-- ===================== 调整参数（折叠） ===================== -->
+    <details class="card">
+      <summary>🔧 调整参数<span class="chev">▶</span><span class="preview" id="paramPreview"></span></summary>
+      <div id="inputsWrap">
+        <div class="card" style="box-shadow:none">
+          <h2><span class="step">1</span>工资收入（元 / 月）</h2>
+          <div class="grid2">
+            <div class="field"><label for="baseSalary">基本工资</label><input type="number" id="baseSalary" inputmode="decimal" min="0" step="100" value="20000"></div>
+            <div class="field"><label for="monthlyBonus">月度奖金</label><input type="number" id="monthlyBonus" inputmode="decimal" min="0" step="100" value="5000" placeholder="可为 0"></div>
+          </div>
+          <div class="summary-chip" id="monthlySalarySummary"></div>
+        </div>
+
+        <div class="card" style="box-shadow:none">
+          <h2><span class="step">2</span>五险一金（专项扣除）</h2>
+          <div class="data-year-note"><span class="warn-ico">⚠</span><span>社保缴费基数数据为 <strong>2025 年度</strong>（对应 2024 年全口径社平工资）；各地通常每年 7 月发布新基数，逾期请提醒更新数据。</span></div>
+          <div class="field">
+            <label for="citySelect">参保城市</label>
+            <select id="citySelect"><option value="" selected>自定义（手动填写）</option></select>
+            <div class="hint">选择城市后自动填入该市常见个人比例，并联动住房租金档位建议；仍可手动修改任意比例，修改后下拉自动切回「自定义」。公积金比例 5%–12% 由单位自选，本默认值为该市常见比例，仅供参考。</div>
+          </div>
+          <div class="field">
+            <label>缴费基数</label>
+            <div class="radio-row">
+              <label><input type="radio" name="siBase" value="basic" checked>基本工资（默认）</label>
+              <label><input type="radio" name="siBase" value="full">全额工资（基本工资+月度奖金）</label>
+            </div>
+          </div>
+          <div class="field">
+            <label class="cap-toggle"><input type="checkbox" id="capEnabled" checked>启用缴费基数上下限封顶（工资超当地上限时五险一金不再随工资上涨）</label>
+            <div class="grid2">
+              <div class="field"><label for="siCapInput">缴费基数上限（元/月，留空=不限）</label><input type="number" id="siCapInput" inputmode="decimal" min="0" step="100" placeholder="留空不限"></div>
+              <div class="field"><label for="siFloorInput">缴费基数下限（元/月，留空=不限）</label><input type="number" id="siFloorInput" inputmode="decimal" min="0" step="100" placeholder="留空不限"></div>
+            </div>
+            <div class="hint">选择城市后自动带出该市缴费基数上下限（2025 年度公布值），可手动修改；留空则该方向不封顶；公积金上下限与社保略有差异，此处按社保口径近似。</div>
+          </div>
+          <div class="radio-row">
+            <label><input type="radio" name="siMode" value="ratio" checked>按比例缴纳</label>
+            <label><input type="radio" name="siMode" value="fixed">按固定金额</label>
+          </div>
+          <div id="ratioFields" class="grid4">
+            <div class="field"><label for="ratioPension">养老 %</label><input type="number" id="ratioPension" inputmode="decimal" min="0" max="100" step="0.1" value="8"></div>
+            <div class="field"><label for="ratioMedical">医疗 %</label><input type="number" id="ratioMedical" inputmode="decimal" min="0" max="100" step="0.1" value="2"></div>
+            <div class="field"><label for="ratioUnemployment">失业 %</label><input type="number" id="ratioUnemployment" inputmode="decimal" min="0" max="100" step="0.1" value="0.5"></div>
+            <div class="field"><label for="ratioHousing">公积金 %</label><input type="number" id="ratioHousing" inputmode="decimal" min="0" max="100" step="0.1" value="12"></div>
+          </div>
+          <div id="fixedFields" class="field" style="display:none">
+            <label for="fixedSiAmount">每月五险一金合计（元）</label>
+            <input type="number" id="fixedSiAmount" inputmode="decimal" min="0" step="10" value="3500">
+          </div>
+          <div class="summary-chip" id="siSummary"></div>
+          <div class="note">缴费基数默认「基本工资」，可选「全额工资（基本工资+月度奖金）」；比例模式 = 缴费基数 × 个人比例合计；固定金额模式不受缴费基数影响。启用封顶后：基数高于当地上限按上限计、低于下限按下限计（按社保口径近似，公积金上下限略有差异）。</div>
+        </div>
+
+        <div class="card" style="box-shadow:none">
+          <h2><span class="step">3</span>专项附加扣除（选择 → 自动填标准金额）</h2>
+          <div class="field">
+            <label for="specialChildrenCount">子女教育 <span class="hint">2000 元/月·子女（国发〔2023〕13 号）</span></label>
+            <div class="grid2">
+              <select id="specialChildrenCount">
+                <option value="0" selected>0 个</option>
+                <option value="1">1 个</option>
+                <option value="2">2 个</option>
+                <option value="3">3 个</option>
+              </select>
+              <div class="sel-amt" id="specialChildrenAmt">0.00 元/月</div>
+            </div>
+          </div>
+          <div class="field">
+            <label for="specialInfantsCount">3岁以下婴幼儿照护 <span class="hint">2000 元/月·孩</span></label>
+            <div class="grid2">
+              <select id="specialInfantsCount">
+                <option value="0" selected>0 个</option>
+                <option value="1">1 个</option>
+                <option value="2">2 个</option>
+                <option value="3">3 个</option>
+              </select>
+              <div class="sel-amt" id="specialInfantsAmt">0.00 元/月</div>
+            </div>
+          </div>
+          <div class="field">
+            <label>继续教育 <span class="hint">学历学位教育 400 元/月</span></label>
+            <div class="radio-row">
+              <label><input type="radio" name="specialEducation" value="no" checked>无</label>
+              <label><input type="radio" name="specialEducation" value="yes">有（学历学位教育，400/月）</label>
+            </div>
+            <div class="sel-amt" id="specialEducationAmt">0.00 元/月</div>
+          </div>
+          <div class="field">
+            <label>住房贷款利息 <span class="hint">首套房贷 1000 元/月</span></label>
+            <div class="radio-row">
+              <label><input type="radio" name="specialLoan" value="no" checked>无</label>
+              <label><input type="radio" name="specialLoan" value="yes">首套房贷，1000/月</label>
+            </div>
+            <div class="sel-amt" id="specialLoanAmt">0.00 元/月</div>
+          </div>
+          <div class="field">
+            <label for="specialRent">住房租金 <span class="hint">与住房贷款利息互斥（二选一）；选择城市时自动建议档位，可手动改</span></label>
+            <div class="grid2">
+              <select id="specialRent">
+                <option value="" selected>无</option>
+                <option value="1500">1500（直辖市·省会·计划单列市）</option>
+                <option value="1100">1100（市区人口&gt;100万）</option>
+                <option value="800">800（其他）</option>
+              </select>
+              <div class="sel-amt" id="specialRentAmt">0.00 元/月</div>
+            </div>
+          </div>
+          <div class="field">
+            <label>赡养老人 <span class="hint">独生子女 3000 元/月；非独生子女与兄弟姐妹分摊，每人≤1500</span></label>
+            <div class="radio-row">
+              <label><input type="radio" name="specialElderly" value="none" checked>无</label>
+              <label><input type="radio" name="specialElderly" value="sole">独生子女 3000/月</label>
+              <label><input type="radio" name="specialElderly" value="share">非独生子女</label>
+            </div>
+            <div id="elderlyShareField" class="field" style="display:none">
+              <label for="specialElderlyShare">自己分摊额（元/月，上限 1500，超出按 1500）</label>
+              <input type="number" id="specialElderlyShare" inputmode="decimal" min="0" max="1500" step="100" value="1500">
+            </div>
+            <div class="sel-amt" id="specialElderlyAmt">0.00 元/月</div>
+          </div>
+          <div class="summary-chip" id="specialSummary"></div>
+          <div class="note">大病医疗不在此处：年度据实扣除、汇算清缴时填报。</div>
+        </div>
+
+        <div class="card" style="box-shadow:none">
+          <h2><span class="step">4</span>年终奖</h2>
+          <div class="grid2">
+            <div class="field"><label for="bonusMonths">N 个月（可填小数）</label><input type="number" id="bonusMonths" inputmode="decimal" min="0" step="0.1" value="2"></div>
+            <div class="field"><label for="bonusTiming">发放时间</label>
+              <select id="bonusTiming">
+                <option value="may" selected>次年5月发（默认）</option>
+                <option value="dec">当年12月发</option>
+              </select>
+            </div>
+          </div>
+          <div class="summary-chip" id="bonusAmountSummary"></div>
+          <div class="note" id="bonusTimingNote"></div>
+        </div>
+
+        <div class="card" style="box-shadow:none">
+          <h2><span class="step">5</span>计税方式</h2>
+          <div class="radio-row">
+            <label><input type="radio" name="method" value="separate" checked>单独计税</label>
+            <label><input type="radio" name="method" value="combined">合并计税</label>
+          </div>
+          <div class="note">无论选择哪种，上方始终同时展示两种方式的税额对比与差额。全年一次性奖金单独计税政策延续至 2027 年 12 月 31 日。</div>
+        </div>
+      </div>
+    </details>
+
+    <!-- ===================== 12 个月明细（折叠） ===================== -->
+    <details class="card">
+      <summary>📅 12 个月明细（累计预扣预缴）<span class="chev">▶</span></summary>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>月份</th><th>当月收入</th><th>累计应纳税所得额</th><th>当月预扣个税</th><th>其中：年终奖税</th><th>备注</th></tr></thead>
+          <tbody id="tblBody"></tbody>
+        </table>
+      </div>
+    </details>
+
+    <!-- ===================== 年度汇总（折叠） ===================== -->
+    <details class="card">
+      <summary>📊 年度汇总（当前方式：<span id="methodLabel">单独计税</span>）<span class="chev">▶</span></summary>
+      <div class="sum-list" id="sumList"></div>
+    </details>
+
+    <!-- ===================== 发放时间说明（折叠） ===================== -->
+    <details class="card">
+      <summary>⏱ 发放时间说明<span class="chev">▶</span></summary>
+      <div id="timeNote" class="note" style="color:#374151;font-size:13px"></div>
+    </details>
   </div>
 
   <div class="actions">
