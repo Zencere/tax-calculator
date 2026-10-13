@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>个人所得税计算器（定制版）</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧮</text></svg>">
+<style>
+  :root{
+    --bg:#f2f5f9; --card:#fff; --text:#1f2937; --muted:#6b7280; --line:#e5e7eb;
+    --accent:#2563eb; --accent-soft:#eff6ff; --accent-border:#bfdbfe;
+    --good:#059669; --good-soft:#ecfdf5; --good-border:#a7f3d0;
+    --bad:#dc2626;
+    --warn:#b45309; --warn-soft:#fffbeb; --warn-border:#fde68a;
+    --radius:12px;
+    --shadow:0 1px 3px rgba(17,24,39,.07),0 1px 2px rgba(17,24,39,.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei","PingFang SC","Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.65}
+  .container{max-width:1300px;margin:0 auto;padding:28px 16px 60px}
+  header{text-align:center;margin-bottom:26px}
+  header h1{font-size:26px;font-weight:700;letter-spacing:.5px}
+  header h1 .emoji{margin-right:6px}
+  header p{color:var(--muted);margin-top:6px;font-size:13px}
+  .layout{display:grid;grid-template-columns:400px 1fr;gap:20px;align-items:start}
+  @media(max-width:980px){.layout{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 18px 16px;margin-bottom:16px}
+  .card>h2{font-size:15px;font-weight:600;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .card>h2 .step{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;font-weight:600;flex:none}
+  .field{margin-bottom:12px}
+  .field>label{display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:5px}
+  .field .hint{font-size:12px;color:var(--muted);margin-top:4px}
+  input[type=number],input[type=text],select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:14px;outline:none;background:#fff;color:var(--text);transition:border-color .15s,box-shadow .15s;font-family:inherit}
+  input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .grid6{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  @media(max-width:560px){.grid4{grid-template-columns:1fr 1fr}}
+  .radio-row{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+  .radio-row label{display:inline-flex;align-items:center;gap:6px;font-weight:500;cursor:pointer;user-select:none}
+  .radio-row input[type=radio]{accent-color:var(--accent);width:15px;height:15px;cursor:pointer}
+  .cap-toggle{display:flex;align-items:center;gap:6px;font-weight:500;cursor:pointer;user-select:none;margin-bottom:8px}
+  .cap-toggle input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;cursor:pointer}
+  .capped-tag{display:inline-block;background:var(--warn-soft);border:1px solid var(--warn-border);color:var(--warn);font-size:12px;font-weight:600;padding:1px 8px;border-radius:999px;margin-left:2px}
+  .summary-chip{background:var(--accent-soft);border:1px solid var(--accent-border);border-radius:8px;padding:8px 10px;font-size:13px;color:#1e40af;margin-top:8px;font-variant-numeric:tabular-nums}
+  .sel-amt{background:var(--accent-soft);border:1px solid var(--accent-border);border-radius:8px;padding:8px 10px;font-size:13px;color:#1e40af;text-align:right;font-variant-numeric:tabular-nums;align-self:center}
+  .note{font-size:12px;color:var(--muted);margin-top:6px}
+  /* 对比卡片 */
+  .cmp-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+  @media(max-width:560px){.cmp-grid{grid-template-columns:1fr}}
+  .cmp-box{border:1.5px solid var(--line);border-radius:10px;padding:14px 12px;text-align:center;background:#fafbfc;position:relative}
+  .cmp-box .tag{font-size:12px;font-weight:600;color:var(--muted)}
+  .cmp-box .num{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:12px}
+  .cmp-box .sub{font-size:12px;color:var(--muted);margin-top:6px}
+  .cmp-box .flag{display:none;margin-top:8px;background:var(--good);color:#fff;font-size:12px;font-weight:600;padding:2px 12px;border-radius:999px}
+  .cmp-box.better{border-color:var(--good-border);background:var(--good-soft)}
+  .cmp-box.better .tag{color:var(--good)}
+  .cmp-box.better .num{color:var(--good)}
+  .cmp-box.better .flag{display:inline-block}
+  .cmp-box.selected{box-shadow:0 0 0 1.5px var(--accent)}
+  .cmp-result{background:var(--warn-soft);border:1px solid var(--warn-border);border-radius:10px;padding:10px 12px;font-size:14px;font-weight:600;color:var(--warn);margin-bottom:6px;font-variant-numeric:tabular-nums}
+  .cmp-result.good{background:var(--good-soft);border-color:var(--good-border);color:var(--good)}
+  .cmp-diff{font-size:13px;color:var(--muted);margin-top:2px}
+  /* 表格 */
+  .table-wrap{overflow-x:auto}
+  table{width:100%;min-width:560px;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+  th,td{padding:7px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+  th:first-child,td:first-child{text-align:left}
+  th{background:#f9fafb;color:#374151;font-weight:600}
+  tbody tr:hover{background:#f8fafc}
+  tr.bonus-row td{background:var(--accent-soft)}
+  .bonus-tag{display:inline-block;background:var(--accent);color:#fff;font-size:11px;border-radius:4px;padding:0 6px;font-weight:600}
+  /* 年度汇总 */
+  .sum-list{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px}
+  @media(max-width:560px){.sum-list{grid-template-columns:1fr}}
+  .sum-item{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--line);padding:6px 0;font-size:13px}
+  .sum-item .k{color:var(--muted)}
+  .sum-item .v{font-weight:600;font-variant-numeric:tabular-nums}
+  .sum-item.total .v{font-size:15px;color:var(--accent)}
+  .sum-item.recon .v.positive{color:var(--bad)}
+  .sum-item.recon .v.negative{color:var(--good)}
+  /* 按钮 */
+  .actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border-radius:9px;border:1px solid var(--line);background:#fff;font-size:14px;font-weight:500;cursor:pointer;color:var(--text);transition:all .15s;font-family:inherit}
+  .btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.primary:hover{background:#1d4ed8}
+  footer{text-align:center;color:var(--muted);font-size:12px;margin-top:26px}
+  /* 数据年度警示提示条 */
+  .data-year-note{display:flex;align-items:flex-start;gap:6px;background:var(--warn-soft);border:1px solid var(--warn-border);color:var(--warn);border-radius:8px;padding:7px 10px;font-size:12.5px;line-height:1.55;margin-bottom:13px;overflow-wrap:break-word}
+  .data-year-note .warn-ico{flex:none;font-size:13px;line-height:1.4}
+  /* ===== 移动端适配加固（≤600px / ≤480px，不影响桌面端） ===== */
+  @media(max-width:600px){
+    .container{padding:16px 12px 44px}
+    header{margin-bottom:18px}
+    header h1{font-size:20px}
+    header p{font-size:12px}
+    .card{padding:14px 12px 12px}
+    .card>h2{font-size:14px;margin-bottom:12px}
+  }
+  @media(max-width:480px){
+    /* 触控目标 ≥ 40px：单选/复选 label、下拉、输入、按钮 */
+    .radio-row label{min-height:40px;padding:6px 2px}
+    .cap-toggle{min-height:40px;padding:4px 2px;align-items:flex-start}
+    .cap-toggle input[type=checkbox]{margin-top:2px}
+    input[type=number],input[type=text],select{min-height:40px;font-size:16px} /* 16px 防 iOS 聚焦自动放大 */
+    .btn{min-height:44px;padding:10px 16px;flex:1 1 100%}
+    .actions{gap:8px}
+    .data-year-note{font-size:12px;padding:6px 8px}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1><span class="emoji">🧮</span>个人所得税计算器（定制版）</h1>
+    <p>工资薪金 + 年终奖 · 单独 / 合并计税对比 · 累计预扣预缴明细 · 纯离线运行</p>
+  </header>
+
+  <div class="layout">
+    <!-- ===================== 左侧：输入 ===================== -->
+    <div class="left" id="inputsWrap">
+      <div class="card">
+        <h2><span class="step">1</span>工资收入（元 / 月）</h2>
+        <div class="grid2">
+          <div class="field"><label for="baseSalary">基本工资</label><input type="number" id="baseSalary" inputmode="decimal" min="0" step="100" value="20000"></div>
+          <div class="field"><label for="monthlyBonus">月度奖金</label><input type="number" id="monthlyBonus" inputmode="decimal" min="0" step="100" value="5000" placeholder="可为 0"></div>
+        </div>
+        <div class="summary-chip" id="monthlySalarySummary"></div>
+      </div>
+
+      <div class="card">
+        <h2><span class="step">2</span>五险一金（专项扣除）</h2>
+        <div class="data-year-note"><span class="warn-ico">⚠</span><span>社保缴费基数数据为 <strong>2025 年度</strong>（对应 2024 年全口径社平工资）；各地通常每年 7 月发布新基数，逾期请提醒更新数据。</span></div>
+        <div class="field">
+          <label for="citySelect">参保城市</label>
+          <select id="citySelect"><option value="" selected>自定义（手动填写）</option></select>
+          <div class="hint">选择城市后自动填入该市常见个人比例，并联动住房租金档位建议；仍可手动修改任意比例，修改后下拉自动切回「自定义」。公积金比例 5%–12% 由单位自选，本默认值为该市常见比例，仅供参考。</div>
+        </div>
+        <div class="field">
+          <label>缴费基数</label>
+          <div class="radio-row">
+            <label><input type="radio" name="siBase" value="basic" checked>基本工资（默认）</label>
+            <label><input type="radio" name="siBase" value="full">全额工资（基本工资+月度奖金）</label>
+          </div>
+        </div>
+        <div class="field">
+          <label class="cap-toggle"><input type="checkbox" id="capEnabled" checked>启用缴费基数上下限封顶（工资超当地上限时五险一金不再随工资上涨）</label>
+          <div class="grid2">
+            <div class="field"><label for="siCapInput">缴费基数上限（元/月，留空=不限）</label><input type="number" id="siCapInput" inputmode="decimal" min="0" step="100" placeholder="留空不限"></div>
+            <div class="field"><label for="siFloorInput">缴费基数下限（元/月，留空=不限）</label><input type="number" id="siFloorInput" inputmode="decimal" min="0" step="100" placeholder="留空不限"></div>
+          </div>
+          <div class="hint">选择城市后自动带出该市缴费基数上下限（2025 年度公布值），可手动修改；留空则该方向不封顶；公积金上下限与社保略有差异，此处按社保口径近似。</div>
+        </div>
+        <div class="radio-row">
+          <label><input type="radio" name="siMode" value="ratio" checked>按比例缴纳</label>
+          <label><input type="radio" name="siMode" value="fixed">按固定金额</label>
+        </div>
+        <div id="ratioFields" class="grid4">
+          <div class="field"><label for="ratioPension">养老 %</label><input type="number" id="ratioPension" inputmode="decimal" min="0" max="100" step="0.1" value="8"></div>
+          <div class="field"><label for="ratioMedical">医疗 %</label><input type="number" id="ratioMedical" inputmode="decimal" min="0" max="100" step="0.1" value="2"></div>
+          <div class="field"><label for="ratioUnemployment">失业 %</label><input type="number" id="ratioUnemployment" inputmode="decimal" min="0" max="100" step="0.1" value="0.5"></div>
+          <div class="field"><label for="ratioHousing">公积金 %</label><input type="number" id="ratioHousing" inputmode="decimal" min="0" max="100" step="0.1" value="7"></div>
+        </div>
+        <div id="fixedFields" class="field" style="display:none">
+          <label for="fixedSiAmount">每月五险一金合计（元）</label>
+          <input type="number" id="fixedSiAmount" inputmode="decimal" min="0" step="10" value="3500">
+        </div>
+        <div class="summary-chip" id="siSummary"></div>
+        <div class="note">缴费基数默认「基本工资」，可选「全额工资（基本工资+月度奖金）」；比例模式 = 缴费基数 × 个人比例合计；固定金额模式不受缴费基数影响。启用封顶后：基数高于当地上限按上限计、低于下限按下限计（按社保口径近似，公积金上下限略有差异）。</div>
+      </div>
+
+      <div class="card">
+        <h2><span class="step">3</span>专项附加扣除（选择 → 自动填标准金额）</h2>
+        <div class="field">
+          <label for="specialChildrenCount">子女教育 <span class="hint">2000 元/月·子女（国发〔2023〕13 号）</span></label>
+          <div class="grid2">
+            <select id="specialChildrenCount">
+              <option value="0" selected>0 个</option>
+              <option value="1">1 个</option>
+              <option value="2">2 个</option>
+              <option value="3">3 个</option>
+            </select>
+            <div class="sel-amt" id="specialChildrenAmt">0.00 元/月</div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="specialInfantsCount">3岁以下婴幼儿照护 <span class="hint">2000 元/月·孩</span></label>
+          <div class="grid2">
+            <select id="specialInfantsCount">
+              <option value="0" selected>0 个</option>
+              <option value="1">1 个</option>
+              <option value="2">2 个</option>
+              <option value="3">3 个</option>
+            </select>
+            <div class="sel-amt" id="specialInfantsAmt">0.00 元/月</div>
+          </div>
+        </div>
+        <div class="field">
+          <label>继续教育 <span class="hint">学历学位教育 400 元/月</span></label>
+          <div class="radio-row">
+            <label><input type="radio" name="specialEducation" value="no" checked>无</label>
+            <label><input type="radio" name="specialEducation" value="yes">有（学历学位教育，400/月）</label>
+          </div>
+          <div class="sel-amt" id="specialEducationAmt">0.00 元/月</div>
+        </div>
+        <div class="field">
+          <label>住房贷款利息 <span class="hint">首套房贷 1000 元/月</span></label>
+          <div class="radio-row">
+            <label><input type="radio" name="specialLoan" value="no" checked>无</label>
+            <label><input type="radio" name="specialLoan" value="yes">首套房贷，1000/月</label>
+          </div>
+          <div class="sel-amt" id="specialLoanAmt">0.00 元/月</div>
+        </div>
+        <div class="field">
+          <label for="specialRent">住房租金 <span class="hint">与住房贷款利息互斥（二选一）；选择城市时自动建议档位，可手动改</span></label>
+          <div class="grid2">
+            <select id="specialRent">
+              <option value="" selected>无</option>
+              <option value="1500">1500（直辖市·省会·计划单列市）</option>
+              <option value="1100">1100（市区人口&gt;100万）</option>
+              <option value="800">800（其他）</option>
+            </select>
+            <div class="sel-amt" id="specialRentAmt">0.00 元/月</div>
+          </div>
+        </div>
+        <div class="field">
+          <label>赡养老人 <span class="hint">独生子女 3000 元/月；非独生子女与兄弟姐妹分摊，每人≤1500</span></label>
+          <div class="radio-row">
+            <label><input type="radio" name="specialElderly" value="none" checked>无</label>
+            <label><input type="radio" name="specialElderly" value="sole">独生子女 3000/月</label>
+            <label><input type="radio" name="specialElderly" value="share">非独生子女</label>
+          </div>
+          <div id="elderlyShareField" class="field" style="display:none">
+            <label for="specialElderlyShare">自己分摊额（元/月，上限 1500，超出按 1500）</label>
+            <input type="number" id="specialElderlyShare" inputmode="decimal" min="0" max="1500" step="100" value="1500">
+          </div>
+          <div class="sel-amt" id="specialElderlyAmt">0.00 元/月</div>
+        </div>
+        <div class="summary-chip" id="specialSummary"></div>
+        <div class="note">大病医疗不在此处：年度据实扣除、汇算清缴时填报。</div>
+      </div>
+
+      <div class="card">
+        <h2><span class="step">4</span>年终奖</h2>
+        <div class="grid2">
+          <div class="field"><label for="bonusMonths">N 个月（可填小数）</label><input type="number" id="bonusMonths" inputmode="decimal" min="0" step="0.1" value="2"></div>
+          <div class="field"><label for="bonusTiming">发放时间</label>
+            <select id="bonusTiming">
+              <option value="may" selected>次年5月发（默认）</option>
+              <option value="dec">当年12月发</option>
+            </select>
+          </div>
+        </div>
+        <div class="summary-chip" id="bonusAmountSummary"></div>
+        <div class="note" id="bonusTimingNote"></div>
+      </div>
+
+      <div class="card">
+        <h2><span class="step">5</span>计税方式</h2>
+        <div class="radio-row">
+          <label><input type="radio" name="method" value="separate" checked>单独计税</label>
+          <label><input type="radio" name="method" value="combined">合并计税</label>
+        </div>
+        <div class="note">无论选择哪种，右侧始终同时展示两种方式的税额对比与差额。全年一次性奖金单独计税政策延续至 2027 年 12 月 31 日。</div>
+      </div>
+    </div>
+
+    <!-- ===================== 右侧：输出 ===================== -->
+    <div class="right">
+      <div class="card">
+        <h2>⚖️ 单独计税 vs 合并计税</h2>
+        <div class="cmp-grid">
+          <div class="cmp-box" id="cmpSep">
+            <div class="tag">单独计税</div>
+            <div class="num" id="cmpSepTotal">—</div>
+            <div class="sub" id="cmpSepDetail"></div>
+            <div class="flag">✓ 更划算</div>
+          </div>
+          <div class="cmp-box" id="cmpComb">
+            <div class="tag">合并计税</div>
+            <div class="num" id="cmpCombTotal">—</div>
+            <div class="sub" id="cmpCombDetail"></div>
+            <div class="flag">✓ 更划算</div>
+          </div>
+        </div>
+        <div class="cmp-result" id="cmpBetter"></div>
+        <div class="cmp-diff" id="cmpDiff"></div>
+      </div>
+
+      <div class="card">
+        <h2>📅 月度预扣明细（累计预扣预缴，12 个月）</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>月份</th><th>当月收入</th><th>累计应纳税所得额</th><th>当月预扣个税</th><th>其中：年终奖税</th><th>备注</th></tr></thead>
+            <tbody id="tblBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>📊 年度汇总（当前方式：<span id="methodLabel">单独计税</span>）</h2>
+        <div class="sum-list" id="sumList"></div>
+      </div>
+
+      <div class="card">
+        <h2>⏱ 发放时间影响说明</h2>
+        <div id="timeNote" class="note" style="color:#374151;font-size:13px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn" id="btnExport">⬇ 导出配置（JSON）</button>
+    <button class="btn" id="btnImport">⬆ 导入配置（JSON）</button>
+    <button class="btn primary" id="btnReset">⟳ 重置默认</button>
+    <input type="file" id="importFile" accept=".json,application/json" style="display:none">
+  </div>
+
+  <footer>本工具为纯静态页面，所有计算均在本地浏览器完成，无任何数据上传。结果仅供估算参考，不构成税务建议。</footer>
+</div>
+<script src="calc.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
