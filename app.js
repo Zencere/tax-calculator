@@ -177,8 +177,6 @@
     config.special.elderlyShare = Math.min(1500, num('specialElderlyShare'));
     config.bonusMonths = num('bonusMonths');
     config.bonusTiming = $('bonusTiming').value;
-    var m = document.querySelector('input[name=method]:checked');
-    if (m) config.method = m.value;
     var s = document.querySelector('input[name=siMode]:checked');
     if (s) config.siMode = s.value;
     var b = document.querySelector('input[name=siBase]:checked');
@@ -224,7 +222,6 @@
     $('bonusMonths').value = config.bonusMonths;
     $('bonusTiming').value = config.bonusTiming;
     document.querySelector('input[name=siMode][value="' + config.siMode + '"]').checked = true;
-    document.querySelector('input[name=method][value="' + config.method + '"]').checked = true;
     document.querySelector('input[name=siBase][value="' + config.siBase + '"]').checked = true;
     $('capEnabled').checked = !!config.capEnabled;
     $('siCapInput').value = config.siCap || '';
@@ -393,6 +390,7 @@
     var pos = Math.max(0, Math.min(1, t / SCALE_MAX)) * 100;
     $('scaleDot').style.left = pos + '%';
     $('scaleTaxable').textContent = fmt(t);
+    $('scaleIncome').textContent = '年收入 ¥' + fmt(c.annualSalaryIncome) + ' → 计税基数 ¥' + fmt(t);
     var b = T.annualBracket(t);
     $('scaleLevel').textContent = '第 ' + b.level + ' 档 · 税率 ' + compactRate(b.rate * 100) + '%';
     if (b.level >= 7) {
@@ -417,13 +415,21 @@
   /* ===================== 渲染 ===================== */
   function methodName() { return config.method === 'separate' ? '单独计税' : '合并计税'; }
 
+  // 点击对比区卡片切换当前计税方式（取代原「计税方式」radio）；切换后自动保存并重算
+  function setMethod(m) {
+    if (config.method === m) return;
+    config.method = m;
+    saveConfig();
+    recalc();
+  }
+
   function render(c) {
     var sep = c.annual.separate;
     var comb = c.annual.combined;
     currentTaxable = c.curTaxable;
     renderHero(c);
     renderScale(c);
-    $('paramPreview').textContent = '月薪 ' + fmt(c.monthlySalary) + ' · 五险一金 ' + fmt(c.si) + '/月 · 专项 ' + fmt(c.sp) + '/月 · 年终奖 ' + fmt(c.bonus) + ' · ' + methodName();
+    $('paramPreview').textContent = '五险一金 ' + fmt(c.si) + '/月 · 专项 ' + fmt(c.sp) + '/月 · ' + methodName();
 
     /* --- 输入摘要 --- */
     $('monthlySalarySummary').innerHTML = '月工资合计 = 基本工资 <b>' + fmt(c.base) + '</b> + 月度奖金 <b>' + fmt(c.mb) + '</b> = <b>' + fmt(c.monthlySalary) + '</b> 元';
@@ -440,9 +446,21 @@
     $('specialSummary').innerHTML = '月专项附加 = 各项合计 <b>' + fmt(c.sp) + '</b> 元（全年 <b>' + fmt(c.sp * 12) + '</b> 元）';
     syncSpecialAmounts();
     $('bonusAmountSummary').innerHTML = '年终奖 = <b>' + config.bonusMonths + '</b> 个月 ×（' + fmt(c.base) + ' + ' + fmt(c.mb) + '）= <b>' + fmt(c.bonus) + '</b> 元，于 <b>' + c.bonusMonth + ' 月</b>到账';
-    $('bonusTimingNote').textContent = config.bonusTiming === 'may'
-      ? '「次年5月发」：5 月到账的年终奖为上一年度劳动所得，按税法计入本年度汇算清缴。本计算器主视图为某一个纳税年度的完整计算：1–12 月每月发工资，年终奖在 5 月到账并体现在 5 月的预扣。'
-      : '「当年12月发」：年终奖在当年 12 月随工资到账，预扣体现在 12 月。';
+    var tn;
+    if (config.bonusTiming === 'may') {
+      tn = '「次年5月发」：5 月到账的年终奖是上一年度劳动所得，按税法计入本年度汇算清缴。就本计算器展示的这一纳税年度而言，1–12 月每月照常发工资、年终奖于 5 月到账——';
+      tn += config.method === 'separate'
+        ? '单独计税下，年终奖不进入每月累计预扣，5 月按「奖金 ÷ 12」月度换算表单独预扣年终奖个税。'
+        : '合并计税下，年终奖并入 5 月的累计收入，5 月当月累计预扣明显上升。';
+      tn += '年度口径税额与 12 月发放完全相同，二者仅影响资金到账时间（晚约 7 个月）与各月预扣节奏。';
+    } else {
+      tn = '「当年12月发」：年终奖于当年 12 月随工资到账，预扣体现在 12 月。';
+      tn += config.method === 'separate'
+        ? '单独计税下 12 月按月度换算表单独预扣年终奖税；'
+        : '合并计税下并入 12 月累计收入参与预扣；';
+      tn += '全年口径税额与次年 5 月发放完全相同，仅到账时间更早（12 月）。';
+    }
+    $('bonusTimingNote').textContent = tn;
 
     /* --- 单独 vs 合并对比 --- */
     $('cmpSepTotal').textContent = fmt(sep.total);
@@ -470,7 +488,7 @@
     var chip = $('cmpBetter');
     chip.textContent = (sep.total === comb.total ? '' : '🏆 ') + betterText;
     chip.className = 'cmp-result' + (sep.total === comb.total ? '' : ' good');
-    $('cmpDiff').textContent = '税额差额：' + fmt(diff) + ' 元　·　当前选择：' + methodName() + '（蓝色边框高亮）';
+    $('cmpDiff').textContent = '税额差额：' + fmt(diff) + ' 元　·　当前选择：' + methodName() + '（点击上方卡片即可切换）';
 
     /* 月度预扣表 */
     var html = '';
@@ -531,23 +549,6 @@
       div.appendChild(k); div.appendChild(v);
       list.appendChild(div);
     }
-
-    /* 时间影响说明 */
-    var tn;
-    if (config.bonusTiming === 'may') {
-      tn = '「次年5月发」：5 月到账的年终奖是上一年度劳动所得，按税法计入本年度汇算清缴。就本计算器展示的这一纳税年度而言，1–12 月每月照常发工资、年终奖于 5 月到账——';
-      tn += config.method === 'separate'
-        ? '单独计税下，年终奖不进入每月累计预扣，5 月按「奖金 ÷ 12」月度换算表单独预扣年终奖个税。'
-        : '合并计税下，年终奖并入 5 月的累计收入，5 月当月累计预扣明显上升。';
-      tn += '年度口径税额与 12 月发放完全相同，二者仅影响资金到账时间（晚约 7 个月）与各月预扣节奏。';
-    } else {
-      tn = '「当年12月发」：年终奖于当年 12 月随工资到账，预扣体现在 12 月。';
-      tn += config.method === 'separate'
-        ? '单独计税下 12 月按月度换算表单独预扣年终奖税；'
-        : '合并计税下并入 12 月累计收入参与预扣；';
-      tn += '全年口径税额与次年 5 月发放完全相同，仅到账时间更早（12 月）。';
-    }
-    $('timeNote').textContent = tn;
 
     /* 加班优化器（随本次 recalc 同步刷新；其输入变化时另有独立监听） */
     renderOvertime();
@@ -646,8 +647,12 @@
     recalc();
     $('inputsWrap').addEventListener('input', onAnyInput);
     $('inputsWrap').addEventListener('change', onAnyInput);
+    $('incomeWrap').addEventListener('input', onAnyInput);
+    $('incomeWrap').addEventListener('change', onAnyInput);
     $('overtimeAmount').addEventListener('input', renderOvertime); // 加班优化器：独立于年度计算主流程
     $('citySelect').addEventListener('change', onCityChange);
+    $('cmpSep').addEventListener('click', function () { setMethod('separate'); });
+    $('cmpComb').addEventListener('click', function () { setMethod('combined'); });
     $('btnExport').addEventListener('click', exportConfig);
     $('btnImport').addEventListener('click', function () { $('importFile').click(); });
     $('importFile').addEventListener('change', function () {

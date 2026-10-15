@@ -47,7 +47,9 @@
   /* 对比卡片 */
   .cmp-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
   @media(max-width:560px){.cmp-grid{grid-template-columns:1fr}}
-  .cmp-box{border:1.5px solid var(--line);border-radius:10px;padding:14px 12px;text-align:center;background:#fafbfc;position:relative}
+  .cmp-box{border:1.5px solid var(--line);border-radius:10px;padding:14px 12px;text-align:center;background:#fafbfc;position:relative;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .15s;-webkit-tap-highlight-color:transparent}
+  .cmp-box:hover{border-color:var(--accent);box-shadow:0 0 0 1.5px var(--accent-soft)}
+  .cmp-hint{font-size:11px;color:var(--muted);opacity:.8;margin-top:8px;font-weight:400}
   .cmp-box .tag{font-size:12px;font-weight:600;color:var(--muted)}
   .cmp-box .num{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:12px}
   .cmp-box .sub{font-size:12px;color:var(--muted);margin-top:6px}
@@ -106,6 +108,7 @@
   .scale-tick i{display:block;width:2px;height:16px;background:rgba(107,114,128,.55);margin:3px auto 0}
   .scale-gap{margin-top:16px;font-size:13.5px;font-weight:600;color:var(--warn);display:flex;gap:12px;flex-wrap:wrap;align-items:center}
   .scale-gap .lvl{color:var(--accent)}
+  .scale-income{margin-top:10px;font-size:13px;font-weight:600;color:#374151;font-variant-numeric:tabular-nums}
   /* 加班优化器 */
   .ot-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
   @media(max-width:700px){.ot-grid{grid-template-columns:1fr 1fr}}
@@ -128,6 +131,13 @@
     header p{font-size:12px}
     .card{padding:14px 12px 12px}
     .card>h2{font-size:14px;margin-bottom:12px}
+    .income-card .grid2{grid-template-columns:1fr}
+    .income-card input[type=number],.income-card select{min-height:40px;font-size:16px}
+    /* 刻度尺移动端：收窄边距、缩小字号、隐藏次要刻度文字（竖线保留并对齐） */
+    .scale{margin:38px 10px 0}
+    .scale-tick{font-size:11px;top:-33px}
+    .scale-tick.minor span{display:none}
+    .scale-tick.minor{padding-top:13px} /* 补偿被隐藏文字行高（11px×1.2≈13.2px），保持竖线与其余刻度对齐 */
   }
   @media(max-width:480px){
     /* 触控目标 ≥ 40px：单选/复选 label、下拉、输入、按钮 */
@@ -149,6 +159,34 @@
   </header>
 
   <div class="layout">
+    <!-- ===================== 收入输入（工资 + 年终奖，前置） ===================== -->
+    <div class="card income-card" id="incomeWrap">
+      <h2>💰 收入输入 <span class="note">工资 + 年终奖 · 修改即实时重算</span></h2>
+      <div class="card" style="box-shadow:none">
+        <h2><span class="step">1</span>工资收入（元 / 月）</h2>
+        <div class="grid2">
+          <div class="field"><label for="baseSalary">基本工资</label><input type="number" id="baseSalary" inputmode="decimal" min="0" step="100" value="20000"></div>
+          <div class="field"><label for="monthlyBonus">月度奖金</label><input type="number" id="monthlyBonus" inputmode="decimal" min="0" step="100" value="5000" placeholder="可为 0"></div>
+        </div>
+        <div class="summary-chip" id="monthlySalarySummary"></div>
+      </div>
+
+      <div class="card" style="box-shadow:none">
+        <h2><span class="step">2</span>年终奖</h2>
+        <div class="grid2">
+          <div class="field"><label for="bonusMonths">N 个月（可填小数）</label><input type="number" id="bonusMonths" inputmode="decimal" min="0" step="0.1" value="2"></div>
+          <div class="field"><label for="bonusTiming">发放时间</label>
+            <select id="bonusTiming">
+              <option value="may" selected>次年5月发（默认）</option>
+              <option value="dec">当年12月发</option>
+            </select>
+          </div>
+        </div>
+        <div class="summary-chip" id="bonusAmountSummary"></div>
+        <div class="note" id="bonusTimingNote"></div>
+      </div>
+    </div>
+
     <!-- ===================== 核心结论 Hero ===================== -->
     <div class="card hero-card">
       <div class="hero-title">🏆 核心结论 · 当前方式：<span id="heroMethodLabel">单独计税</span></div>
@@ -166,13 +204,14 @@
     <!-- ===================== 档位刻度尺 ===================== -->
     <div class="card">
       <h2>📏 档位刻度尺 · 当前方式应纳税所得额 <b id="scaleTaxable">—</b> 元 · <span class="lvl" id="scaleLevel">第 1 档 · 税率 3%</span></h2>
+      <div class="scale-income" id="scaleIncome">年收入 ¥0.00 → 计税基数 ¥0.00</div>
       <div class="scale">
         <div class="scale-dot" id="scaleDot"></div>
         <div class="scale-tick" style="left:0%;transform:translateX(0)"><span>0</span><i></i></div>
-        <div class="scale-tick" style="left:3.75%"><span>3.6万</span><i></i></div>
+        <div class="scale-tick minor" style="left:3.75%"><span>3.6万</span><i></i></div>
         <div class="scale-tick" style="left:15%"><span>14.4万</span><i></i></div>
         <div class="scale-tick" style="left:31.25%"><span>30万</span><i></i></div>
-        <div class="scale-tick" style="left:43.75%"><span>42万</span><i></i></div>
+        <div class="scale-tick minor" style="left:43.75%"><span>42万</span><i></i></div>
         <div class="scale-tick" style="left:68.75%"><span>66万</span><i></i></div>
         <div class="scale-tick" style="left:100%;transform:translateX(-100%)"><span>96万</span><i></i></div>
       </div>
@@ -200,17 +239,19 @@
     <details class="card" open>
       <summary>⚖️ 单独 vs 合并计税<span class="chev">▶</span></summary>
       <div class="cmp-grid">
-        <div class="cmp-box" id="cmpSep">
+        <div class="cmp-box" id="cmpSep" title="点击切换当前方式：单独计税">
           <div class="tag">单独计税</div>
           <div class="num" id="cmpSepTotal">—</div>
           <div class="sub" id="cmpSepDetail"></div>
           <div class="flag">✓ 更划算</div>
+          <div class="cmp-hint">点击切换当前方式</div>
         </div>
-        <div class="cmp-box" id="cmpComb">
+        <div class="cmp-box" id="cmpComb" title="点击切换当前方式：合并计税">
           <div class="tag">合并计税</div>
           <div class="num" id="cmpCombTotal">—</div>
           <div class="sub" id="cmpCombDetail"></div>
           <div class="flag">✓ 更划算</div>
+          <div class="cmp-hint">点击切换当前方式</div>
         </div>
       </div>
       <div class="cmp-result" id="cmpBetter"></div>
@@ -222,16 +263,7 @@
       <summary>🔧 调整参数<span class="chev">▶</span><span class="preview" id="paramPreview"></span></summary>
       <div id="inputsWrap">
         <div class="card" style="box-shadow:none">
-          <h2><span class="step">1</span>工资收入（元 / 月）</h2>
-          <div class="grid2">
-            <div class="field"><label for="baseSalary">基本工资</label><input type="number" id="baseSalary" inputmode="decimal" min="0" step="100" value="20000"></div>
-            <div class="field"><label for="monthlyBonus">月度奖金</label><input type="number" id="monthlyBonus" inputmode="decimal" min="0" step="100" value="5000" placeholder="可为 0"></div>
-          </div>
-          <div class="summary-chip" id="monthlySalarySummary"></div>
-        </div>
-
-        <div class="card" style="box-shadow:none">
-          <h2><span class="step">2</span>五险一金（专项扣除）</h2>
+          <h2><span class="step">1</span>五险一金（专项扣除）</h2>
           <div class="data-year-note"><span class="warn-ico">⚠</span><span>社保缴费基数数据为 <strong>2025 年度</strong>（对应 2024 年全口径社平工资）；各地通常每年 7 月发布新基数，逾期请提醒更新数据。</span></div>
           <div class="field">
             <label for="citySelect">参保城市</label>
@@ -272,7 +304,7 @@
         </div>
 
         <div class="card" style="box-shadow:none">
-          <h2><span class="step">3</span>专项附加扣除（选择 → 自动填标准金额）</h2>
+          <h2><span class="step">2</span>专项附加扣除（选择 → 自动填标准金额）</h2>
           <div class="field">
             <label for="specialChildrenCount">子女教育 <span class="hint">2000 元/月·子女（国发〔2023〕13 号）</span></label>
             <div class="grid2">
@@ -342,29 +374,6 @@
           <div class="note">大病医疗不在此处：年度据实扣除、汇算清缴时填报。</div>
         </div>
 
-        <div class="card" style="box-shadow:none">
-          <h2><span class="step">4</span>年终奖</h2>
-          <div class="grid2">
-            <div class="field"><label for="bonusMonths">N 个月（可填小数）</label><input type="number" id="bonusMonths" inputmode="decimal" min="0" step="0.1" value="2"></div>
-            <div class="field"><label for="bonusTiming">发放时间</label>
-              <select id="bonusTiming">
-                <option value="may" selected>次年5月发（默认）</option>
-                <option value="dec">当年12月发</option>
-              </select>
-            </div>
-          </div>
-          <div class="summary-chip" id="bonusAmountSummary"></div>
-          <div class="note" id="bonusTimingNote"></div>
-        </div>
-
-        <div class="card" style="box-shadow:none">
-          <h2><span class="step">5</span>计税方式</h2>
-          <div class="radio-row">
-            <label><input type="radio" name="method" value="separate" checked>单独计税</label>
-            <label><input type="radio" name="method" value="combined">合并计税</label>
-          </div>
-          <div class="note">无论选择哪种，上方始终同时展示两种方式的税额对比与差额。全年一次性奖金单独计税政策延续至 2027 年 12 月 31 日。</div>
-        </div>
       </div>
     </details>
 
@@ -385,11 +394,6 @@
       <div class="sum-list" id="sumList"></div>
     </details>
 
-    <!-- ===================== 发放时间说明（折叠） ===================== -->
-    <details class="card">
-      <summary>⏱ 发放时间说明<span class="chev">▶</span></summary>
-      <div id="timeNote" class="note" style="color:#374151;font-size:13px"></div>
-    </details>
   </div>
 
   <div class="actions">
